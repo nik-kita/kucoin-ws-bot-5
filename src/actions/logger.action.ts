@@ -1,4 +1,5 @@
 import Promitter from '@nik-kita/promitter';
+import prompts from 'prompts';
 import { TAction } from '../types/action.type';
 
 const promitter = new Promitter<'clearInterval'>();
@@ -34,8 +35,20 @@ class LoggerActionClass {
             promitterInCb: promitter,
         };
     }
+
+    public static loggerCli() {
+        return prompts([
+            {
+                type: 'number',
+                message: 'No more than 1 log every _ mms? (1 log every _ miliseconds) or (negative for any logs) or (0 for display each log)',
+                name: 'logInterval',
+                initial: -1,
+            },
+        ]);
+    }
 }
 
 export const {
     LoggerAction,
+    loggerCli,
 } = LoggerActionClass;

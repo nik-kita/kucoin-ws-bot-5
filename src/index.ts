@@ -1,18 +1,22 @@
-import { LoggerAction } from './actions/logger.action';
-import { pause } from './utils/pause.util';
+import { PurchaseAction, purchaseCli } from './actions/purchase.action';
 import KucoinWs from './ws/kucoin.ws';
 
 (async () => {
     const ku = await KucoinWs.open();
     await ku.subscribe();
 
-    const { off, promitterInCb } = ku.addAction(LoggerAction({
-        logInterval: 500,
-    }));
+    const cli = await purchaseCli();
 
-    await pause(4000);
+    const { off, promitterInCb } = ku.addAction(PurchaseAction(cli));
 
-    promitterInCb.emit('clearInterval');
+    promitterInCb.on('failPurchase', (data) => {
+        console.log('FAIL:', data);
+    });
+
+    const p = await promitterInCb.wait('purchase');
+
+    console.log(p);
 
     ku.removeActions('message', [off]);
+    await ku.close();
 })();
