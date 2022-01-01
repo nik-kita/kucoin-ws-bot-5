@@ -11,6 +11,7 @@ import KucoinWs from './ws/kucoin.ws';
 
     promitterInCb.on('failPurchase', (data) => {
         console.log('FAIL:', data);
+        promitterInCb.emit('repeatOrder');
     });
 
     const p = await promitterInCb.wait('purchase');

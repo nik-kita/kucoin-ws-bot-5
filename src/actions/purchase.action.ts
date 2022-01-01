@@ -13,7 +13,7 @@ class Wrapper {
     multiplyPercentToBuy: number,
     usdtAmount: number,
   }): TAction {
-        const {
+        let {
             minPercent,
             multiplyPercentToBuy,
             usdtAmount,
@@ -21,7 +21,12 @@ class Wrapper {
         let isOrderingStarted = false;
         const promitter = new Promitter()
             .on('repeatOrder', () => {
-                isOrderingStarted = false;
+                Wrapper.purchaseCli().then((cli) => {
+                    minPercent = cli.minPercent;
+                    multiplyPercentToBuy = cli.multiplyPercentToBuy;
+                    usdtAmount = cli.usdtAmount;
+                    isOrderingStarted = false;
+                });
             })
             .on('stopOrder', () => {
                 isOrderingStarted = true;

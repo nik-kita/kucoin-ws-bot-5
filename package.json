@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm uninstall @nik-kita/promitter && npm i @nik-kita/promitter && npx tsc -p tsconfig.json",
+    "build": "npx tsc -p tsconfig.json",
     "start": "npm run build && node dist",
     "_start": "npm run build && node dist/_index.js",
     "lint": "npx eslint --fix 'src/**/*.ts'"
