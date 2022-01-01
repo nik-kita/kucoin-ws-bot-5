@@ -7,7 +7,7 @@
     "lint": "npx eslint --fix 'src/**/*.ts'"
   },
   "dependencies": {
-    "@nik-kita/promitter": "^1.1.1",
+    "@nik-kita/promitter": "^1.2.0",
     "@types/uuid": "^8.3.3",
     "axios": "^0.24.0",
     "crypto": "^1.0.1",
