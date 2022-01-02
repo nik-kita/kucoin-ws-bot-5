@@ -7,6 +7,7 @@ import { PurchaseAction } from './actions/purchase.action';
 import { TOrderRes } from './api/post/orders/orders.type.api';
 import { Req } from './api/req.api';
 import { cli, previousCli } from './cli';
+import { pause } from './utils/pause.util';
 import MarketTickerMessageDto from './ws/dto/market-ticker.sub.dto';
 import KucoinWs from './ws/kucoin.ws';
 
@@ -23,6 +24,9 @@ import KucoinWs from './ws/kucoin.ws';
         })).loadPrev
             ? await previousCli()
             : await cli();
+
+        if (input.ttl < 0) delete input.ttl;
+
         const { off, promitterInCb } = ku.addAction(PurchaseAction(input));
         const { cb: logCb, promitterInCb: loggerPromitter } = LoggerAction(input);
         promitterInCb.on('failPurchase', (data) => {
@@ -44,7 +48,8 @@ import KucoinWs from './ws/kucoin.ws';
         loggerPromitter.rmListeners();
         ku.removeActions('message', [off]);
         const _price = (() => {
-            const p = (parseFloat(order.coin.data.price) * 1.04).toFixed(3);
+            const p = (parseFloat(order.coin.data.price) * 1.03)
+                .toFixed(order.price.length - 2);
             console.log('============================', order.coin.data.price, order.price);
             console.log('PRICE:', p);
             console.log('============================');
@@ -58,6 +63,7 @@ import KucoinWs from './ws/kucoin.ws';
 
             return s;
         })();
+        await pause(2000);
         const res = await Req.POST['/api/v1/orders']
             .sell
             .limit

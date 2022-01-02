@@ -11,14 +11,14 @@ class Wrapper {
     minPercent: number,
     multiplyPercentToBuy: number,
     usdtAmount: number,
-    ttl: number,
+    ttl?: number,
     counter: number,
   }): TAction {
         const {
             minPercent = 1,
             multiplyPercentToBuy = 1.1,
             usdtAmount = 5,
-            ttl = 4000,
+            ttl,
             counter = 2,
         } = options;
 
@@ -48,13 +48,14 @@ class Wrapper {
                     coin.data.startPrice = priceFloat;
                     coin.data.agio = 0;
                     coin.counter = 0;
-                    coin.ttl = setTimeout(() => {
+                    coin.ttl = ttl && setTimeout(() => {
                         coinsMap.delete(message.subject);
                     }, ttl);
 
                     coinsMap.set(message.subject, coin);
                 } else {
-                    clearTimeout(coin.ttl!);
+                    // eslint-disable-next-line no-unused-expressions
+                    ttl && clearTimeout(coin.ttl!);
                     coin.ttl = setTimeout(() => {
                         coinsMap.delete(message.subject);
                     }, ttl);

@@ -44,7 +44,7 @@ export async function cli() {
                 const sms = 'TTL FOR COIN STORING';
                 return sms.padEnd(50 - sms.length);
             })(),
-            initial: 1000,
+            initial: -1,
         },
         {
             name: 'resetDbTimer',
