@@ -43,13 +43,13 @@ import KucoinWs from './ws/kucoin.ws';
         loggerPromitter.emit('clearInterval');
         loggerPromitter.rmListeners();
         ku.removeActions('message', [off]);
-        const _price = (() => {
-            const p = (parseFloat(order.coin.data.price) * 1.04).toFixed(3);
-            console.log('============================', order.coin.data.price, order.price);
-            console.log('PRICE:', p);
-            console.log('============================');
-            return p;
-        })();
+        // const _price = (() => {
+        //     const p = (parseFloat(order.coin.data.price) * 1.04).toFixed(3);
+        //     console.log('============================', order.coin.data.price, order.price);
+        //     console.log('PRICE:', p);
+        //     console.log('============================');
+        //     return p;
+        // })();
         const _size = (() => {
             const s = order.size;
             console.log('============================');
@@ -58,22 +58,28 @@ import KucoinWs from './ws/kucoin.ws';
 
             return s;
         })();
-        const res = await Req.POST['/api/v1/orders']
-            .sell
-            .limit
-            .symbol(order.coin.subject)
-            .price(_price)
-            .size(_size)
-            .exec();
-        console.log(res);
-        console.log(order.log);
+        // const res = await Req.POST['/api/v1/orders']
+        //     .sell
+        //     .limit
+        //     .symbol(order.coin.subject)
+        //     .price(_price)
+        //     .size(_size)
+        //     .exec();
+        // console.log(res);
+        // console.log(order.log);
 
-        if (!(await prompts({
-            message: 'AGAIN?',
-            type: 'confirm',
-            initial: 'y',
-            name: 'again',
-        })).again) break;
+        // if (!(await prompts({
+        //     message: 'AGAIN?',
+        //     type: 'confirm',
+        //     initial: 'y',
+        //     name: 'again',
+        // })).again) break;
+
+        try {
+            Req.POST['/api/v1/orders'].sell.market.symbol(order.coin.subject).size(_size);
+        } catch (e) {
+            console.log('ERROR');
+        }
 
         await ku.removeActions();
         await ku.close();

@@ -9,6 +9,7 @@ export class BaseMethod<TRes, TParams = any, TBody = any> {
       protected endpoint: string,
       protected params?: object,
       protected body?: object,
+      protected needSignature: boolean = true,
     ) { }
 
     protected paramsResolver: (params: any) => any = (params: any) => params;
@@ -16,19 +17,23 @@ export class BaseMethod<TRes, TParams = any, TBody = any> {
     protected bodyResolver: (body: any) => any = (body: any) => body;
 
     public async exec() {
-        const headers = SignGenerator
-            .create()
-            .generateHeaders(
-                {
-                    method: this.method,
-                    endpoint: this.endpoint,
-                    params: this.params,
-                    body: this.body,
-                },
-            );
+        let headers: any;
+
+        if (this.needSignature) {
+            headers = SignGenerator
+                .create()
+                .generateHeaders(
+                    {
+                        method: this.method,
+                        endpoint: this.endpoint,
+                        params: this.params,
+                        body: this.body,
+                    },
+                );
+        }
 
         const { data: axiosData } = await axios({
-            headers,
+            ...(headers && { headers }),
             method: this.method,
             url: HOST + this.endpoint,
             params: this.params,

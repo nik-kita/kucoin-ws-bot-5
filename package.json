@@ -3,6 +3,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc -p tsconfig.json",
     "start:dev": "npm run build && node dist",
+    "_start": "npm run build && node dist/_index.js",
     "start": "echo WARNING: no build! && npm run build && node dist",
     "handmade-sell-market": "node dist/handmade/sell-market.handmade.js",
     "lint": "npx eslint --fix 'src/**/*.ts'"

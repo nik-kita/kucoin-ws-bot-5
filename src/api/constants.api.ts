@@ -6,6 +6,7 @@ export const GET = {
         endpoint: '/api/v1/orders/:orderId' as const,
         generateLink: (orderId: string) => `/api/v1/orders/${orderId}`,
     },
+    API_V1_TRADE_FEES: '/api/v1/trade-fees' as const,
 };
 
 export const POST = {
