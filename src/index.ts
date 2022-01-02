@@ -68,12 +68,12 @@ import KucoinWs from './ws/kucoin.ws';
         console.log(res);
         console.log(order.log);
 
-        if ((await prompts({
+        if (!(await prompts({
             message: 'AGAIN?',
             type: 'confirm',
             initial: 'y',
-            name: 'finish',
-        })).finish!) break;
+            name: 'again',
+        })).again) break;
 
         await ku.removeActions();
         await ku.close();
