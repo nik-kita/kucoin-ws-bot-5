@@ -8,21 +8,22 @@ import MarketTickerMessageDto from '../ws/dto/market-ticker.sub.dto';
 
 class Wrapper {
     public static PurchaseAction(options: {
-    minPercent: number | string,
-    multiplyPercentToBuy: number | string,
-    usdtAmount: number | string,
+    minPercent: number,
+    multiplyPercentToBuy: number,
+    usdtAmount: number,
+    ttl: number,
+    counter: number,
   }): TAction {
-        let {
-            minPercent,
-            multiplyPercentToBuy,
-            usdtAmount,
+        const {
+            minPercent = 1,
+            multiplyPercentToBuy = 1.1,
+            usdtAmount = 5,
+            ttl = 4000,
+            counter = 2,
         } = options;
-        minPercent = parseFloat(minPercent as string);
-        multiplyPercentToBuy = parseFloat(multiplyPercentToBuy as string);
-        usdtAmount = parseFloat(usdtAmount as string);
 
         let isOrderingStarted = false;
-        const coinsMap = new Map<string, MarketTickerMessageDto & { ttl?: any }>();
+        const coinsMap = new Map<string, MarketTickerMessageDto & { ttl?: any, counter?: number }>();
         const promitter = new Promitter()
             .on('repeatOrder', () => {
                 // TODO
@@ -46,28 +47,30 @@ class Wrapper {
                     coin = message;
                     coin.data.startPrice = priceFloat;
                     coin.data.agio = 0;
+                    coin.counter = 0;
                     coin.ttl = setTimeout(() => {
                         coinsMap.delete(message.subject);
-                    }, 300);
+                    }, ttl);
 
                     coinsMap.set(message.subject, coin);
                 } else {
                     clearTimeout(coin.ttl!);
                     coin.ttl = setTimeout(() => {
                         coinsMap.delete(message.subject);
-                    }, 300);
+                    }, ttl);
                     coin.data.agio = calculateAgio(coin.data.startPrice, priceFloat);
                 }
 
+                if (coin.data.lastPrice !== priceFloat)++coin.counter!;
                 coin.data.lastPrice = priceFloat;
 
                 promitter.emit('log', coin);
-                if (coin.data.agio <= minPercent) return;
+                if (coin.counter! < counter || coin.data.agio <= minPercent) return;
 
                 isOrderingStarted = true;
 
-                const boughtPrice = generateBoughtPrice(coin.data.price, multiplyPercentToBuy as number);
-                const boughtSize = generateBoughtSize(usdtAmount as number, parseFloat(boughtPrice));
+                const boughtPrice = generateBoughtPrice(coin.data.price, multiplyPercentToBuy);
+                const boughtSize = generateBoughtSize(usdtAmount, parseFloat(boughtPrice));
 
                 Req
                     .POST['/api/v1/orders']
@@ -80,6 +83,8 @@ class Wrapper {
                     .then((res) => {
                         if (res) {
                             promitter.emit('purchase', {
+                                size: boughtSize,
+                                price: boughtPrice,
                                 res,
                                 coin,
                                 log: `\n\n\n${`${coin!.subject.split('-')[0]}`.padStart(50)}\n\n\n`,

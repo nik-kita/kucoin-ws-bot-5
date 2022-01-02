@@ -12,12 +12,12 @@ class Wrapper {
         if (!coin) {
             coin = message;
             coin.data.lastPrice = priceFloat;
-            coin.data.agio = 0;
+            coin.data.agio = -100;
             map.set(coin.subject, coin);
         } else {
             coin.data.agio = Wrapper.calculateAgio(coin.data.startPrice, priceFloat);
         }
-        coin.data.startPrice = priceFloat;
+        coin.data.lastPrice = priceFloat;
 
         return coin as Omit<MarketTickerMessageDto, 'data'> & { data: Required<TData> };
     }

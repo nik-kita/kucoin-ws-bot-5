@@ -14,7 +14,7 @@ export async function cli() {
                 return sms.padEnd(50 - sms.length);
             })(),
             name: 'minPercent',
-            initial: 1,
+            initial: 2,
         },
         {
             type: 'number',
@@ -64,7 +64,17 @@ export async function cli() {
                 return sms.padEnd(50 - sms.length);
             })(),
             name: 'logInterval',
-            initial: 0,
+            initial: 500,
+        },
+        {
+            type: 'number',
+            float: true,
+            message: (() => {
+                const sms = 'HOW MANY TIMES SHOULD COIN BE ENTER TO DB?';
+                return sms.padEnd(50 - sms.length);
+            })(),
+            name: 'counter',
+            initial: 3,
         },
     ]);
 
