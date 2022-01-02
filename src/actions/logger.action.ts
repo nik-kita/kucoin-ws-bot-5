@@ -1,8 +1,8 @@
 import Promitter from '@nik-kita/promitter';
-import prompts from 'prompts';
 import { TAction } from '../types/action.type';
+import MarketTickerMessageDto from '../ws/dto/market-ticker.sub.dto';
 
-const promitter = new Promitter<'clearInterval'>();
+const promitter = new Promitter();
 
 class LoggerActionClass {
     public static LoggerAction(options: {
@@ -10,7 +10,11 @@ class LoggerActionClass {
   }): TAction {
         const { logInterval } = options;
         let isFirst = !(logInterval < 0);
-        let currentMessage: object = {};
+        let currentMessage: string = '';
+        let dbSize = 0;
+        promitter.on('dbLen', (data: number) => {
+            dbSize = data;
+        });
         const logTimer = (interval: number) => {
             const offInterval = setInterval(() => {
                 console.log(currentMessage);
@@ -19,8 +23,11 @@ class LoggerActionClass {
         };
 
         return {
-            cb(message) {
-                currentMessage = message;
+            cb(message: MarketTickerMessageDto) {
+                const a = `${message.subject}: ${message.data.price}`;
+                const b = `${message.data.agio} %`.padStart(50 - a.length);
+                const c = String(dbSize).padStart(70 - a.length - b.length);
+                currentMessage = a + b + c;
 
                 if (!isFirst) return;
 
@@ -35,20 +42,8 @@ class LoggerActionClass {
             promitterInCb: promitter,
         };
     }
-
-    public static loggerCli() {
-        return prompts([
-            {
-                type: 'number',
-                message: 'No more than 1 log every _ mms? (1 log every _ miliseconds) or (negative for any logs) or (0 for display each log)',
-                name: 'logInterval',
-                initial: -1,
-            },
-        ]);
-    }
 }
 
 export const {
     LoggerAction,
-    loggerCli,
 } = LoggerActionClass;

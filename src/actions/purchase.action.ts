@@ -1,5 +1,4 @@
 import Promitter from '@nik-kita/promitter';
-import prompts from 'prompts';
 import { Req } from '../api/req.api';
 import { TAction } from '../types/action.type';
 import {
@@ -9,33 +8,36 @@ import MarketTickerMessageDto from '../ws/dto/market-ticker.sub.dto';
 
 class Wrapper {
     public static PurchaseAction(options: {
-    minPercent: number,
-    multiplyPercentToBuy: number,
-    usdtAmount: number,
+    minPercent: number | string,
+    multiplyPercentToBuy: number | string,
+    usdtAmount: number | string,
   }): TAction {
         let {
             minPercent,
             multiplyPercentToBuy,
             usdtAmount,
         } = options;
+        minPercent = parseFloat(minPercent as string);
+        multiplyPercentToBuy = parseFloat(multiplyPercentToBuy as string);
+        usdtAmount = parseFloat(usdtAmount as string);
+
         let isOrderingStarted = false;
+        const coinsMap = new Map<string, MarketTickerMessageDto & { ttl?: any }>();
         const promitter = new Promitter()
             .on('repeatOrder', () => {
-                Wrapper.purchaseCli().then((cli) => {
-                    minPercent = cli.minPercent;
-                    multiplyPercentToBuy = cli.multiplyPercentToBuy;
-                    usdtAmount = cli.usdtAmount;
-                    isOrderingStarted = false;
-                });
+                // TODO
             })
             .on('stopOrder', () => {
                 isOrderingStarted = true;
+            })
+            .on('cleanDb', () => {
+                coinsMap.clear();
             });
-        const coinsMap = new Map<string, MarketTickerMessageDto>();
 
         return {
             cb: (message: MarketTickerMessageDto) => {
                 if (!isActualMessage(message) || isOrderingStarted) return;
+                promitter.emit('dbLen', coinsMap.size);
 
                 let coin = coinsMap.get(message.subject);
                 const priceFloat = parseFloat(message.data.price);
@@ -44,20 +46,28 @@ class Wrapper {
                     coin = message;
                     coin.data.startPrice = priceFloat;
                     coin.data.agio = 0;
+                    coin.ttl = setTimeout(() => {
+                        coinsMap.delete(message.subject);
+                    }, 300);
 
                     coinsMap.set(message.subject, coin);
                 } else {
+                    clearTimeout(coin.ttl!);
+                    coin.ttl = setTimeout(() => {
+                        coinsMap.delete(message.subject);
+                    }, 300);
                     coin.data.agio = calculateAgio(coin.data.startPrice, priceFloat);
                 }
 
                 coin.data.lastPrice = priceFloat;
 
+                promitter.emit('log', coin);
                 if (coin.data.agio <= minPercent) return;
 
                 isOrderingStarted = true;
 
-                const boughtPrice = generateBoughtPrice(coin.data.price, multiplyPercentToBuy);
-                const boughtSize = generateBoughtSize(usdtAmount, parseFloat(boughtPrice));
+                const boughtPrice = generateBoughtPrice(coin.data.price, multiplyPercentToBuy as number);
+                const boughtSize = generateBoughtSize(usdtAmount as number, parseFloat(boughtPrice));
 
                 Req
                     .POST['/api/v1/orders']
@@ -71,7 +81,8 @@ class Wrapper {
                         if (res) {
                             promitter.emit('purchase', {
                                 res,
-                                symbol: coin!.subject,
+                                coin,
+                                log: `\n\n\n${`${coin!.subject.split('-')[0]}`.padStart(50)}\n\n\n`,
                             });
                         } else promitter.emit('failPurchase', res);
                     });
@@ -79,32 +90,8 @@ class Wrapper {
             promitterInCb: promitter,
         };
     }
-
-    public static purchaseCli() {
-        return prompts([
-            {
-                type: 'number',
-                message: 'Min percent when to make purchase: ',
-                name: 'minPercent',
-                initial: 1,
-            },
-            {
-                type: 'number',
-                message: 'Amount of USDT you ready to spend: ',
-                name: 'usdtAmount',
-                initial: 5,
-            },
-            {
-                type: 'number',
-                message: 'multiplyPercentToBuyToBuy: ',
-                name: 'multiplyPercentToBuy',
-                initial: 1.1,
-            },
-        ]);
-    }
 }
 
 export const {
     PurchaseAction,
-    purchaseCli,
 } = Wrapper;
