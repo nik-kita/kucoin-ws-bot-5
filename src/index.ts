@@ -48,7 +48,7 @@ import KucoinWs from './ws/kucoin.ws';
         loggerPromitter.rmListeners();
         ku.removeActions('message', [off]);
         const _price = (() => {
-            const p = (parseFloat(order.coin.data.price) * 1.03)
+            const p = (parseFloat(order.coin.data.price) * 1.04)
                 .toFixed(order.price.length - 2);
             console.log('============================', order.coin.data.price, order.price);
             console.log('PRICE:', p);
@@ -63,7 +63,6 @@ import KucoinWs from './ws/kucoin.ws';
 
             return s;
         })();
-        await pause(2000);
         const res = await Req.POST['/api/v1/orders']
             .sell
             .limit

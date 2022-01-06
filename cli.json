@@ -1,9 +1,9 @@
 {
-  "minPercent": 3,
+  "minPercent": 4,
   "usdtAmount": 10,
-  "multiplyPercentToBuy": 1.03,
+  "multiplyPercentToBuy": 1.02,
   "ttl": -1,
-  "resetDbTimer": 3000,
+  "resetDbTimer": 5000,
   "logInterval": 2000,
-  "counter": 1
+  "counter": 2
 }
